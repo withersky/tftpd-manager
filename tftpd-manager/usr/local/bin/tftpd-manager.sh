@@ -46,7 +46,7 @@ open_mc() {
 while true; do
     clear
     echo "=========================================="
-    echo "       TFTPD CONTROL PANEL"
+    echo "       TFTPD SERVER CONTROL"
     echo "=========================================="
     get_status
     list_files
