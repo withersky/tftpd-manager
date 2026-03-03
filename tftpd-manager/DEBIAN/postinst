@@ -1,14 +1,22 @@
 #!/bin/bash
-chmod +x /usr/local/bin/tftpd-manager.sh
-chmod +x /usr/share/applications/tftpd-manager.desktop
-# 1. Останавливаем сервер, если он запустился при установке зависимости
+CONF_FILE="/etc/default/tftpd-hpa"
+BACKUP_FILE="/etc/default/tftpd-hpa.bak"
+
+if [ -f "$CONF_FILE" ]; then
+    if [ ! -f "$BACKUP_FILE" ]; then
+        cp "$CONF_FILE" "$BACKUP_FILE"
+        echo "TFTP Manager: Создан бэкап оригинального конфига ($BACKUP_FILE)."
+    fi
+
+    # Включаем verbose
+    if ! grep -q "verbose" "$CONF_FILE"; then
+        sed -i 's/TFTP_OPTIONS="\(.*\)"/TFTP_OPTIONS="\1 --verbose"/' "$CONF_FILE"
+    fi
+fi
+
 systemctl stop tftpd-hpa
-
-# 2. Отключаем автозапуск при загрузке системы
 systemctl disable tftpd-hpa
-
-# 3. (Опционально) Если хочешь быть уверен, что он не запустится сам по сокету
-# systemctl mask tftpd-hpa # Раскомментируй, если нужно "заморозить" намертво
-
 echo "TFTP Manager: Сервер tftpd-hpa переведен в ручной режим управления."
+
+chmod +x /usr/local/bin/tftpd-manager.sh
 exit 0

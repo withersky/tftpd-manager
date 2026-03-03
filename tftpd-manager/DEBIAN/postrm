@@ -1,0 +1,16 @@
+#!/bin/bash
+CONF_FILE="/etc/default/tftpd-hpa"
+BACKUP_FILE="/etc/default/tftpd-hpa.bak"
+
+# Проверяем, что это именно удаление (а не обновление пакета)
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if [ -f "$BACKUP_FILE" ]; then
+        echo "TFTP Manager: Удаление пакета. Восстановление оригинального конфига..."
+        mv "$BACKUP_FILE" "$CONF_FILE"
+
+        systemctl enable --now tftpd-hpa
+        echo "TFTP Manager: Сервер tftpd-hpa переведен в автоматический режим управления (systemd)."
+    fi
+fi
+
+exit 0
