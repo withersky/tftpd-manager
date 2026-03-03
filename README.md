@@ -28,7 +28,7 @@
 ## 📦 Сборка .deb пакета
 Для создания установочного файла выполните следующие шаги:
 
-Склонируйте репозиторий и подготовьте структуру:
+Склонируйте репозиторий:
 
 ```Bash
 git clone https://github.com/withersky/tftpd-managerr.git
@@ -38,13 +38,13 @@ cd tftpd-manager
 Соберите пакет:
 
 ```Bash
-dpkg-deb --build ./tftpd-manager
+./build.sh
 ```
 
 Установите полученный пакет:
 
 ```Bash
-sudo apt install ./tftpd-manager-*.deb
+sudo apt install ./tftpd-manager_*.deb
 ```
 
 ## 🛠 Зависимости
