@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=System;Network;Settings;
+Comment=Управление сервером и файлами TFTP
+Exec=pkexec /usr/local/bin/tftpd-manager.sh
+Icon=network-server
+Name=TFTP Server Control
+Terminal=true
+Type=Application

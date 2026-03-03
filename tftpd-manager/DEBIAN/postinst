@@ -1,0 +1,14 @@
+#!/bin/bash
+chmod +x /usr/local/bin/tftpd-manager.sh
+chmod +x /usr/share/applications/tftpd-manager.desktop
+# 1. Останавливаем сервер, если он запустился при установке зависимости
+systemctl stop tftpd-hpa
+
+# 2. Отключаем автозапуск при загрузке системы
+systemctl disable tftpd-hpa
+
+# 3. (Опционально) Если хочешь быть уверен, что он не запустится сам по сокету
+# systemctl mask tftpd-hpa # Раскомментируй, если нужно "заморозить" намертво
+
+echo "TFTP Manager: Сервер tftpd-hpa переведен в ручной режим управления."
+exit 0
