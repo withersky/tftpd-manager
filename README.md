@@ -48,7 +48,7 @@ wr1045ndv2_ru_tp_recovery.bin
 Склонируйте репозиторий:
 
 ```Bash
-git clone https://github.com/withersky/tftpd-managerr.git
+git clone https://github.com/withersky/tftpd-manager.git
 cd tftpd-manager
 ```
 
@@ -79,7 +79,9 @@ sudo apt install ./tftpd-manager_*.deb
   
 * `usr/share/applications/tftpd-manager.desktop` — файл ярлыка для системного меню.
   
-* `DEBIAN/postinst` — скрипт послеустановочной настройки (отключает автозапуск `tftpd-hpa`).
+* `DEBIAN/postinst` — скрипт послеустановочной настройки.
+
+* `DEBIAN/postrm` — скрипт настройки после удаления.
 
 ## 🖥 Использование
 После установки найдите в меню приложений `TFTP Server Control`.
