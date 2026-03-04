@@ -1,0 +1,71 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Позволяет запускать сборку вручную кнопкой
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Parse Commit Message
+        id: parse_commit
+        run: |
+          # Извлекаем первую строку коммита
+          FIRST_LINE=$(git log -1 --pretty=%B | head -n 1)
+          
+          # Условие: формат vX.Y.Z И запуск через push (не вручную)
+          if [[ $FIRST_LINE =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]] && [[ "${{ github.event_name }}" == "push" ]]; then
+            VERSION_ONLY="${BASH_REMATCH[1]}"
+            # Сохраняем все, что после первой строки, в файл описания
+            git log -1 --pretty=%B | tail -n +2 > release_body.txt
+            
+            echo "match=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION_ONLY" >> $GITHUB_OUTPUT
+          else
+            echo "match=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm dpkg-dev tar
+
+      - name: Make build script executable
+        run: chmod +x build.sh
+
+      - name: Run build script
+        run: ./build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tftpd-manager-packages
+          path: |
+            *.deb
+            *.rpm
+            *.tar.gz
+
+      - name: Create GitHub Release
+        # Срабатывает только если в коммите была версия vX.Y.Z и это НЕ ручной запуск
+        if: steps.parse_commit.outputs.match == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.parse_commit.outputs.version }}
+          name: ${{ steps.parse_commit.outputs.version }}
+          body_path: release_body.txt
+          files: |
+            *.deb
+            *.rpm
+            *.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
