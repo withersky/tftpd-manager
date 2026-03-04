@@ -54,7 +54,7 @@ jobs:
             *.deb
             *.rpm
             *.tar.gz
-          retention-days: 5
+          retention-days: 30
 
       - name: Create GitHub Release
         # Срабатывает только если в коммите была версия vX.Y.Z и это НЕ ручной запуск
