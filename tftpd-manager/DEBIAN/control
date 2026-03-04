@@ -1,8 +1,9 @@
 Package: tftpd-manager
-Version: 1.1.1
+Version: 1.2.0
 Section: utils
 Priority: optional
 Architecture: all
-Depends: tftpd-hpa, mc, bash, coreutils, systemd, grep
+Depends: tftpd-hpa, mc, bash, coreutils, systemd, grep, procps
 Maintainer: Withersky
-Description: Interactive menu for tftpd-hpa management.
+Description: Interactive menu for tftpd management.
+

@@ -1,22 +1,20 @@
 #!/bin/bash
-CONF_FILE="/etc/default/tftpd-hpa"
-BACKUP_FILE="/etc/default/tftpd-hpa.bak"
+set -e
 
-if [ -f "$CONF_FILE" ]; then
-    if [ ! -f "$BACKUP_FILE" ]; then
-        cp "$CONF_FILE" "$BACKUP_FILE"
-        echo "TFTP Manager: Создан бэкап оригинального конфига ($BACKUP_FILE)."
-    fi
+APP_CONF="/etc/tftpd-manager.conf"
 
-    # Включаем verbose
-    if ! grep -q "verbose" "$CONF_FILE"; then
-        sed -i 's/TFTP_OPTIONS="\(.*\)"/TFTP_OPTIONS="\1 --verbose"/' "$CONF_FILE"
-    fi
+if [ ! -f "$APP_CONF" ]; then
+    echo 'TFTP_DIR="/srv/tftp"' > "$APP_CONF"
+    chmod 644 "$APP_CONF"
 fi
 
-systemctl stop tftpd-hpa
-systemctl disable tftpd-hpa
-echo "TFTP Manager: Сервер tftpd-hpa переведен в ручной режим управления."
+if systemctl is-active --quiet tftpd-hpa; then
+    systemctl stop tftpd-hpa >/dev/null 2>&1 || true
+fi
 
-chmod +x /usr/local/bin/tftpd-manager.sh
+echo "Переключение в ручной режим системной службы tftpd-hpa..."
+systemctl disable tftpd-hpa >/dev/null 2>&1 || true
+
+chmod +x /usr/local/bin/tftpd-manager
+
 exit 0
