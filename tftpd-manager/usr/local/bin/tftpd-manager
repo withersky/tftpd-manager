@@ -1,15 +1,27 @@
 #!/bin/bash
 
-APP_VERSION="1.2.0"
+APP_VERSION="1.2.1"
 APP_CONF="/etc/tftpd-manager.conf"
+
+cleanup() {
+    local exit_code=$?
+    
+    if is_running; then
+        echo -e "\n\e[33m[!] Завершение работы: остановка сервера...\e[0m"
+        case_stop >/dev/null 2>&1
+    fi
+    
+    exit $exit_code
+}
+
+trap cleanup EXIT SIGINT SIGTERM SIGHUP
 
 if [ "$EUID" -ne 0 ]; then
     echo -e "\e[31mОшибка: Для управления TFTP требуются права суперпользователя.\e[0m"
     echo "Пожалуйста, запустите скрипт через: sudo $0"
+    trap - EXIT
     exit 1
 fi
-
-trap "" SIGINT
 
 BINARY=$(command -v in.tftpd || command -v tftpd || echo "/usr/sbin/in.tftpd")
 
@@ -23,16 +35,14 @@ is_running() {
 }
 
 list_files() {
-    echo -e "\e[96mФайлы в ($TFTP_DIR):\e[0m"
     if [ -d "$TFTP_DIR" ]; then
-        local files=$(ls -F "$TFTP_DIR" | grep -v /)
+        echo -e "\e[96mФайлы в ($TFTP_DIR):\e[0m"
+        local files=$(ls -F "$TFTP_DIR" 2>/dev/null | grep -v /)
         if [ -z "$files" ]; then
             echo "  [Директория пуста]"
         else
             echo "$files" | sed 's/^/  /'
         fi
-    else
-        echo -e "\e[31m  [!] Ошибка: Путь не найден\e[0m"
     fi
 }
 
@@ -45,16 +55,16 @@ case_start() {
 }
 
 case_stop() {
-    pkill -f "$BINARY"
-    sleep 1
+    pkill -f "$BINARY" 2>/dev/null
+    sleep 0.5
 }
 
 watch_log() {
     clear
     echo -e "\e[33m--- МОНИТОРИНГ (Ctrl+C для возврата) ---\e[0m"
-    trap "trap '' SIGINT; return" SIGINT
+    trap "return" SIGINT
     journalctl -f | grep --line-buffered -E "tftpd|in.tftpd"
-    trap "" SIGINT
+    trap cleanup SIGINT
 }
 
 while true; do
@@ -75,7 +85,7 @@ while true; do
     echo " 1) СТАРТ               4) ИЗМЕНИТЬ ПУТЬ"
     echo " 2) СТОП                5) МОНИТОРИНГ"
     echo " 3) ПЕРЕЗАПУСК          6) ОТКРЫТЬ В MC"
-    echo " 7) ВЫХОД"
+    echo "                        7) ВЫХОД"
     echo "------------------------------------------"
     read -p "Выбор: " choice
 
@@ -86,7 +96,7 @@ while true; do
         4) 
             read -e -p "Введите новый путь: " new_dir
             if [ -d "$new_dir" ]; then
-                TFTP_DIR="$new_dir"
+                TFTP_DIR=$(realpath "$new_dir")
                 echo "TFTP_DIR=\"$TFTP_DIR\"" > "$APP_CONF"
                 case_stop; case_start
             else
@@ -94,6 +104,7 @@ while true; do
             fi ;;
         5) watch_log ;;
         6) mc "$TFTP_DIR" ;;
-        7) case_stop; exit 0 ;;
+        7) exit 0 ;;
+        *) echo -e "\e[31mНеверный выбор\e[0m"; sleep 1 ;;
     esac
 done
